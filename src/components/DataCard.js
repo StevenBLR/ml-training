@@ -6,6 +6,10 @@ function DataCard(props) {
     return (
         <Container>
             <p>{text}</p>
+            <ButtonsArea>
+                <button>Recipe</button>
+                <button>Not recipe</button>
+            </ButtonsArea>
         </Container>
     );
 }
@@ -14,5 +18,17 @@ export default DataCard;
 
 const Container = styled.div`
     display: flex;
-    margin: 20px;
+    align-items: center;
+    p {
+        margin-right: 20px;
+    }
+`;
+
+const ButtonsArea = styled.div`
+    display: flex;
+    flex-direction: column;
+    button {
+        max-height: 100px;
+        margin-block: 10px;
+    }
 `;
