@@ -9,10 +9,12 @@ function App() {
     const axInstance = axios.create({
         baseURL: 'http://localhost:8080',
     });
+    const unTrainedPosts = '/training/getAllUntrainedPosts';
+    const allPosts = '/yumyum/medias';
 
     useEffect(() => {
         axInstance
-            .get('/yumyum/medias/boB43xVgLGYKp27NSw3n5vUczei1')
+            .get(`${unTrainedPosts}/boB43xVgLGYKp27NSw3n5vUczei1`)
             .then((d) => {
                 setData(d.data);
                 console.log(d.data);
@@ -22,7 +24,9 @@ function App() {
     return (
         <Container className="App">
             {data != null &&
-                data.map((dt, i) => <DataCard text={dt.caption} key={i} />)}
+                data.map((dt, i) => (
+                    <DataCard postId={dt._id} text={dt.caption} key={i} />
+                ))}
         </Container>
     );
 }
