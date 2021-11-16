@@ -6,31 +6,116 @@ import styled from 'styled-components';
 import ExtractModelInfos from './system/MLextractInfos';
 
 function App() {
-    const [data, setData] = useState(null);
+    const [posts, setPosts] = useState([]);
     const axInstance = axios.create({
         baseURL: 'http://localhost:8080',
     });
-    const unTrainedPosts = '/training/getAllUntrainedPosts';
-    //const allPosts = '/yumyum/medias';
+    const axInstance2 = axios.create({
+        baseURL: 'http://localhost:8080',
+    });
+    const [topWords, setTopWords] = useState([]);
+    let [deletedTexts, setDeletedTexts] = useState([]);
+
+    const unTrainedPostsPath = '/training/getAllUntrainedPosts';
+    const predictionPath = '/training/isRecipe';
 
     useEffect(() => {
-        // Get only untrained user posts datas
+        let postsData = [];
+        // 1 - Get only untrained user posts datas
         axInstance
-            .get(`${unTrainedPosts}/boB43xVgLGYKp27NSw3n5vUczei1`)
+            .get(`${unTrainedPostsPath}/boB43xVgLGYKp27NSw3n5vUczei1`)
             .then((d) => {
-                let postsData = d.data.posts;
-                setData(postsData);
-                console.log(d.data);
-                ExtractModelInfos(d.data.model, 20);
+                // 2 - Get posts data
+                postsData = d.data.posts;
+                axInstance2
+                    .get('/training/isRecipe', {
+                        text: postsData[0].caption,
+                    })
+                    .then((data) => {
+                        //console.log('Returned data = ', data);
+                        //post.score = data;
+                        //console.log('Post data ', post);
+                        console.log('Data ', data);
+                    });
+                //});
+
+                setPosts(postsData);
+                // setPosts(postsData);
+                // console.log(d.data);
+                // setTopWords(ExtractModelInfos(d.data.model, 20));
             });
-    }, []);
+
+        // 3 - Add score to post data
+        //posts.forEach((post) => {
+        //console.log(post);
+        // axInstance
+        //     .get(`/training/isRecipe/`, {
+        //         text: posts[0].caption,
+        //     })
+        //     .then((data) => {
+        //         //console.log('Returned data = ', data);
+        //         //post.score = data;
+        //         //console.log('Post data ', post);
+        //         console.log('Data ', data);
+        //     });
+        //});
+
+        console.log('Deleted Text', deletedTexts);
+    }, [deletedTexts]);
+
+    // useEffect(() => {
+    //     //console.log(posts);
+    //     const axInstance2 = axios.create({
+    //         baseURL: 'http://localhost:8080',
+    //     });
+    //     // 3 - Add score to post data
+    //     posts.forEach((post) => {
+    //         console.log(post);
+    //         axInstance2
+    //             .get('/training/isRecipe', {
+    //                 text: post.caption,
+    //             })
+    //             .then((data) => {
+    //                 //console.log('Returned data = ', data);
+    //                 //post.score = data;
+    //                 //console.log('Post data ', post);
+    //                 console.log(data);
+    //             });
+    //     });
+    // }, []);
+
+    // function getPostScore(caption) {
+    //     const axInstance2 = axios.create({
+    //         baseURL: 'http://localhost:8080',
+    //     });
+    //     axInstance2
+    //         .get('/training/isRecipe', {
+    //             text: caption,
+    //         })
+    //         .then((data) => {
+    //             console.log('Returned data = ', data);
+    //             return data;
+    //         });
+    // }
 
     return (
         <Container className="App">
-            {data != null &&
-                data.map((dt, i) => (
-                    <DataCard postId={dt._id} text={dt.caption} key={i} />
-                ))}
+            {posts != null &&
+                posts.map(
+                    (dt, i) => (
+                        //!deletedTexts.includes(dt._id) && (
+                        <DataCard
+                            postId={dt._id}
+                            text={dt.caption}
+                            key={i}
+                            action={setDeletedTexts}
+                            deletedTxts={deletedTexts}
+                            topWords={topWords}
+                            //score={getPostScore(dt.caption)}
+                        />
+                    )
+                    //)
+                )}
         </Container>
     );
 }

@@ -46,6 +46,7 @@ function GetTopWords(data, maxScore, nb) {
 }
 
 const parasiteWords = [
+    ':',
     'are',
     'our',
     'not',

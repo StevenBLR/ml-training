@@ -1,10 +1,15 @@
 import axios from 'axios';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 function DataCard(props) {
-    const { text, postId } = props;
+    const buttons = ['recipe', 'notRecipe'];
+    const { text, postId, action, topWords } = props;
+    const [wordsSplit, setWordsSplit] = useState([]);
+
+    let processedTxt = '';
     function trainRecipe(label) {
+        action(postId);
         const axInstance = axios.create({
             baseURL: 'http://localhost:8080',
         });
@@ -13,17 +18,46 @@ function DataCard(props) {
             postId: postId,
             text: text,
         };
-        console.log(data);
         axInstance.post('/training/isRecipe', data);
     }
+    // On first loading
+    useEffect(() => {
+        let splittedWords = [];
+        // 1 - Store every word in text
+        splittedWords.push(text?.split(/[\s,#\.]+/gi));
+        // 2 - Save it as a usedState;
+        //console.log('words split', splittedWords);
+        setWordsSplit(splittedWords);
+    }, []);
+
+    //const allPosts = '/yumyum/medias';
+    // Return score if current word is in the top matching words
+    function checkTop(wordToCheck) {
+        let temp = topWords.find((data) => data.word === wordToCheck);
+        if (temp) return temp.score;
+    }
+
     return (
         <Container>
-            <p>{text}</p>
+            <TextArea>
+                <div className="label">
+                    <span className="label__text">label</span>
+                </div>
+                {wordsSplit.forEach((ws) => {
+                    if (!topWords.find((tw) => tw.word == ws)) console.log(ws);
+                })}
+            </TextArea>
             <ButtonsArea>
-                <button onClick={() => trainRecipe('recipe')}>Recipe</button>
-                <button onClick={() => trainRecipe('notRecipe')}>
-                    Not recipe
-                </button>
+                {/* 1 - Generating training bts */}
+                {buttons.map((b, id) => (
+                    <button
+                        onClick={() => trainRecipe(b)}
+                        className={b}
+                        key={id}
+                    >
+                        {b === 'recipe' ? 'Recipe' : 'Not Recipe'}
+                    </button>
+                ))}
             </ButtonsArea>
         </Container>
     );
@@ -34,8 +68,38 @@ export default DataCard;
 const Container = styled.div`
     display: flex;
     align-items: center;
+    width: 100%;
+    .topWord {
+        font-weight: bold;
+        color: green;
+    }
+`;
+
+const TextArea = styled.div`
+    display: flex;
+    position: relative;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+    min-height: 150px;
+    border: solid 2px black;
+    margin-right: 20px;
+    padding: 10px;
     p {
-        margin-right: 20px;
+        margin: unset;
+        line-height: 1.5;
+    }
+    .label {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: red;
+        min-width: 80px;
+        height: 30px;
+        span {
+            font-weight: bold;
+            margin-inline: 10px;
+        }
     }
 `;
 
@@ -43,7 +107,16 @@ const ButtonsArea = styled.div`
     display: flex;
     flex-direction: column;
     button {
+        font-weight: bold;
+        border: none;
+        min-height: 75px;
         max-height: 100px;
         margin-block: 10px;
+    }
+    .recipe {
+        background-color: lightgreen;
+    }
+    .notRecipe {
+        background-color: lightcoral;
     }
 `;
