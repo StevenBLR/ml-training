@@ -1,13 +1,15 @@
 import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
+import ReactHtmlParser from 'react-html-parser';
+import { GetWordScore } from '../system/MLextractInfos';
 
 function DataCard(props) {
     const buttons = ['recipe', 'notRecipe'];
-    const { text, postId, action, topWords } = props;
+    const { text, postId, action, topWords, MLmodel } = props;
     const [wordsSplit, setWordsSplit] = useState([]);
+    const [processedTxt, setProcessedTxt] = useState([]);
 
-    let processedTxt = '';
     function trainRecipe(label) {
         action(postId);
         const axInstance = axios.create({
@@ -20,15 +22,30 @@ function DataCard(props) {
         };
         axInstance.post('/training/isRecipe', data);
     }
+
+    // Return a classname depending on current word score
+    function processWordDisplaying(score) {}
+
     // On first loading
     useEffect(() => {
         let splittedWords = [];
         // 1 - Store every word in text
-        splittedWords.push(text?.split(/[\s,#\.]+/gi));
+        if (text) splittedWords.push(...text?.split(/[\s,#\.]+/gi));
         // 2 - Save it as a usedState;
         //console.log('words split', splittedWords);
         setWordsSplit(splittedWords);
-    }, []);
+        // 3 - Build text elts
+        let tempTxt = [];
+        splittedWords.forEach((ws) => {
+            // 1 - Create span elt for current word and add classname depending on its score in model
+            tempTxt.push(
+                `<span classnName="${processWordDisplaying(
+                    GetWordScore(ws, MLmodel)
+                )}">${ws} </span>`
+            );
+        });
+        setProcessedTxt(tempTxt);
+    }, [text, MLmodel]);
 
     //const allPosts = '/yumyum/medias';
     // Return score if current word is in the top matching words
@@ -43,9 +60,8 @@ function DataCard(props) {
                 <div className="label">
                     <span className="label__text">label</span>
                 </div>
-                {wordsSplit.forEach((ws) => {
-                    if (!topWords.find((tw) => tw.word == ws)) console.log(ws);
-                })}
+
+                <p>{processedTxt.map((txt) => ReactHtmlParser(txt))}</p>
             </TextArea>
             <ButtonsArea>
                 {/* 1 - Generating training bts */}

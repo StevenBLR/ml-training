@@ -45,6 +45,21 @@ function GetTopWords(data, maxScore, nb) {
     console.log('Top words', topWords);
 }
 
+// Return a score for given word in model in existant
+export function GetWordScore(word, model) {
+    let score = null;
+    // 1 - Get word index
+    //let index = getKeyByValue(model.vocabulary, word);
+    // 2 - Compute score with index ((+) - (-))
+    //console.log('Index = ', index);
+    // 3 - Return word scores
+
+    //console.log(score);
+}
+
+function getKeyByValue(object, value) {
+    return Object.keys(object).find((key) => object[key] === value);
+}
 const parasiteWords = [
     ':',
     'are',

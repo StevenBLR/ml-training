@@ -14,6 +14,7 @@ function App() {
         baseURL: 'http://localhost:8080',
     });
     const [topWords, setTopWords] = useState([]);
+    const [model, setModel] = useState({});
     let [deletedTexts, setDeletedTexts] = useState([]);
 
     const unTrainedPostsPath = '/training/getAllUntrainedPosts';
@@ -27,19 +28,21 @@ function App() {
             .then((d) => {
                 // 2 - Get posts data
                 postsData = d.data.posts;
-                axInstance2
-                    .get('/training/isRecipe', {
-                        text: postsData[0].caption,
-                    })
-                    .then((data) => {
-                        //console.log('Returned data = ', data);
-                        //post.score = data;
-                        //console.log('Post data ', post);
-                        console.log('Data ', data);
-                    });
+                // axInstance2
+                //     .get('/training/isRecipe', {
+                //         text: postsData[0].caption,
+                //     })
+                //     .then((data) => {
+                //         //console.log('Returned data = ', data);
+                //         //post.score = data;
+                //         //console.log('Post data ', post);
+                //         console.log('Data ', data);
+                //     });
                 //});
 
                 setPosts(postsData);
+                setModel(d.data.model);
+                console.log(d.data.model);
                 // setPosts(postsData);
                 // console.log(d.data);
                 // setTopWords(ExtractModelInfos(d.data.model, 20));
@@ -99,7 +102,7 @@ function App() {
     // }
 
     return (
-        <Container className="App">
+        <Container className="app">
             {posts != null &&
                 posts.map(
                     (dt, i) => (
@@ -111,6 +114,7 @@ function App() {
                             action={setDeletedTexts}
                             deletedTxts={deletedTexts}
                             topWords={topWords}
+                            MLmodel={model}
                             //score={getPostScore(dt.caption)}
                         />
                     )
