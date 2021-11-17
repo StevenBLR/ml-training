@@ -1,4 +1,4 @@
-// Return current model top words (filtered)
+// Return current model word/score object (filtered)
 // model = ML model
 // nb = nb to words to return
 export default function ExtractModelInfos(model, nb) {
@@ -20,29 +20,37 @@ export default function ExtractModelInfos(model, nb) {
         if (maxScore < currentScore) maxScore = currentScore;
         scoredVocab.push({ word: vocab[i], score: currentScore });
     }
-    return GetTopWords(scoredVocab, maxScore, nb);
+    return GetOrderedWords(scoredVocab, maxScore, nb);
 }
 
 // Return the top matching word for model
 // data = [{word,score}]
 // maxScore = maxScore
 // nb = nb top elements to return
-function GetTopWords(data, maxScore, nb) {
-    let topWords = [];
+function GetOrderedWords(data, maxScore, nb) {
+    //let topWords = [];
+    let dataToReturn = {
+        topWords: [],
+        wordsScores: [],
+    };
     // 1 - Loop over data starting with maxScore
     for (let i = maxScore; i > 0; i--) {
         let currentWords = [];
         // 2 - Get all current score words to top Words
         currentWords.push(...data.slice().filter((dt) => dt.score === i));
 
-        // 3 - Add words to topWords if were below limit
+        // 3 - Add words to dataToReturn.topWords if were below limit
         currentWords.forEach((cw) => {
-            if (topWords.length < nb && !parasiteWords.includes(cw.word))
-                topWords.push(cw);
+            dataToReturn.wordsScores.push(cw);
+            if (
+                dataToReturn.topWords.length < nb &&
+                !parasiteWords.includes(cw.word)
+            )
+                dataToReturn.topWords.push(cw);
         });
     }
-    return topWords;
-    console.log('Top words', topWords);
+    console.log('Data to return', dataToReturn);
+    return dataToReturn;
 }
 
 // Return a score for given word in model in existant

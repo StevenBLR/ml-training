@@ -32,7 +32,6 @@ function DataCard(props) {
         // 1 - Store every word in text
         if (text) splittedWords.push(...text?.split(/[\s,#\.]+/gi));
         // 2 - Save it as a usedState;
-        //console.log('words split', splittedWords);
         setWordsSplit(splittedWords);
         // 3 - Build text elts
         let tempTxt = [];
