@@ -2,13 +2,18 @@ import axios from 'axios';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
-import { GetWordScore } from '../system/MLextractInfos';
+import colorLerp from 'color-lerp';
 
 function DataCard(props) {
     const buttons = ['recipe', 'notRecipe'];
-    const { text, postId, action, topWords, MLmodel } = props;
+    const { text, postId, action, wordsScore, maxScore } = props;
     const [wordsSplit, setWordsSplit] = useState([]);
     const [processedTxt, setProcessedTxt] = useState([]);
+    const [predictionInfos, setPredictionInfos] = useState();
+
+    const axInstance = axios.create({
+        baseURL: 'http://localhost:8080',
+    });
 
     function trainRecipe(label) {
         action(postId);
@@ -24,7 +29,17 @@ function DataCard(props) {
     }
 
     // Return a classname depending on current word score
-    function processWordDisplaying(score) {}
+    function getClassNameByWordScore(word) {
+        let score = wordsScore?.find((ws) => ws.word === word)?.score;
+        let className = '';
+        if (score) {
+            //console.log('Score = ', score);
+            className = `matching-txt color-index__${score}`;
+        }
+        return className;
+    }
+
+    function getColorByScore(score) {}
 
     // On first loading
     useEffect(() => {
@@ -33,18 +48,20 @@ function DataCard(props) {
         if (text) splittedWords.push(...text?.split(/[\s,#\.]+/gi));
         // 2 - Save it as a usedState;
         setWordsSplit(splittedWords);
+        // 3 - Get model infos for text
+        axInstance.get(`/training/isRecipe/${text}`).then((res) => {
+            setPredictionInfos(res.data);
+            console.log('Data ', res.data);
+        });
         // 3 - Build text elts
         let tempTxt = [];
-        splittedWords.forEach((ws) => {
-            // 1 - Create span elt for current word and add classname depending on its score in model
-            tempTxt.push(
-                `<span classnName="${processWordDisplaying(
-                    GetWordScore(ws, MLmodel)
-                )}">${ws} </span>`
-            );
-        });
+        tempTxt = splittedWords.map((sw) => (
+            <span className={getClassNameByWordScore(sw)}>{sw}</span>
+        ));
+        console.log('Temps txt', tempTxt);
+
         setProcessedTxt(tempTxt);
-    }, [text, MLmodel]);
+    }, [text, wordsScore]);
 
     //const allPosts = '/yumyum/medias';
     // Return score if current word is in the top matching words
@@ -57,10 +74,19 @@ function DataCard(props) {
         <Container>
             <TextArea>
                 <div className="label">
-                    <span className="label__text">label</span>
+                    {predictionInfos?.label ? (
+                        <span
+                            className={`label__text ${
+                                predictionInfos?.label != undefined &&
+                                predictionInfos?.label
+                            }`}
+                        >{`${predictionInfos?.label} ${predictionInfos?.confidence}`}</span>
+                    ) : (
+                        <span className="label__text">...</span>
+                    )}
                 </div>
 
-                <p>{processedTxt.map((txt) => ReactHtmlParser(txt))}</p>
+                <p className="color-index">{processedTxt}</p>
             </TextArea>
             <ButtonsArea>
                 {/* 1 - Generating training bts */}
@@ -103,17 +129,29 @@ const TextArea = styled.div`
     p {
         margin: unset;
         line-height: 1.5;
+        .matching-txt {
+            font-weight: bold;
+        }
+        .color-index {
+            &__1 {
+            }
+        }
     }
     .label {
+        display: flex;
+        align-items: center;
         position: absolute;
         top: 0;
         right: 0;
-        background-color: red;
+        background-color: gray;
         min-width: 80px;
         height: 30px;
         span {
             font-weight: bold;
             margin-inline: 10px;
+        }
+        .recipe {
+            background-color: green;
         }
     }
 `;

@@ -1,7 +1,10 @@
 // Return current model word/score object (filtered)
 // model = ML model
-// nb = nb to words to return
-export default function ExtractModelInfos(model, nb) {
+export default function ExtractModelInfos(model) {
+    if (model?.vocabulary == undefined) {
+        console.error('Cannot extract model info (model is undefined)');
+        return null;
+    }
     let vocab = model.vocabulary;
     let recipeFlag = model.data.recipe;
     let notRecipeFlag = model.data.notRecipe;
@@ -20,19 +23,14 @@ export default function ExtractModelInfos(model, nb) {
         if (maxScore < currentScore) maxScore = currentScore;
         scoredVocab.push({ word: vocab[i], score: currentScore });
     }
-    return GetOrderedWords(scoredVocab, maxScore, nb);
+    return GetOrderedWords(scoredVocab, maxScore);
 }
 
 // Return the top matching word for model
 // data = [{word,score}]
 // maxScore = maxScore
-// nb = nb top elements to return
-function GetOrderedWords(data, maxScore, nb) {
-    //let topWords = [];
-    let dataToReturn = {
-        topWords: [],
-        wordsScores: [],
-    };
+function GetOrderedWords(data, maxScore) {
+    let wordsScores = [];
     // 1 - Loop over data starting with maxScore
     for (let i = maxScore; i > 0; i--) {
         let currentWords = [];
@@ -41,33 +39,13 @@ function GetOrderedWords(data, maxScore, nb) {
 
         // 3 - Add words to dataToReturn.topWords if were below limit
         currentWords.forEach((cw) => {
-            dataToReturn.wordsScores.push(cw);
-            if (
-                dataToReturn.topWords.length < nb &&
-                !parasiteWords.includes(cw.word)
-            )
-                dataToReturn.topWords.push(cw);
+            wordsScores.push(cw);
         });
     }
-    console.log('Data to return', dataToReturn);
-    return dataToReturn;
+    //console.log('Data to return', wordsScores);
+    return wordsScores;
 }
 
-// Return a score for given word in model in existant
-export function GetWordScore(word, model) {
-    let score = null;
-    // 1 - Get word index
-    //let index = getKeyByValue(model.vocabulary, word);
-    // 2 - Compute score with index ((+) - (-))
-    //console.log('Index = ', index);
-    // 3 - Return word scores
-
-    //console.log(score);
-}
-
-function getKeyByValue(object, value) {
-    return Object.keys(object).find((key) => object[key] === value);
-}
 const parasiteWords = [
     ':',
     'are',
