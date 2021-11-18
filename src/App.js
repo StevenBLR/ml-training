@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import ExtractModelInfos from './system/MLextractInfos';
-import Header from './components/Header';
+import TagList from './components/TagList';
 
 function App() {
     const [posts, setPosts] = useState([]);
@@ -15,29 +15,31 @@ function App() {
     const [maxScore, setMaxScore] = useState(0);
     const [model, setModel] = useState({});
     const [deletedTexts, setDeletedTexts] = useState([]);
+    const [parasiteWords, setParasiteWords] = useState([]);
 
-    const unTrainedPostsPath = '/training/getAllUntrainedPosts';
+    const unTrainedPostsPath = '/training/isRecipe/getAllUntrainedPosts';
     const predictionPath = '/training/isRecipe';
+    const parasiteWordsPath = '/training/isRecipe/getAllParasiteWords';
 
     useEffect(() => {
         axInstance
             .get(`${unTrainedPostsPath}/boB43xVgLGYKp27NSw3n5vUczei1`)
             .then((res) => {
-                console.log(res);
                 // XX - Get posts data & Update local states
                 setPosts(res.data.posts);
                 setModel(res.data.model);
-                // PK le model ne est vide ligne suivante alors qu'il est rempli juste avant
-                // setWordsScore(ExtractModelInfos(d.data.model));
-                // setMaxScore(wordsScore[0]?.score);
             });
+
+        axInstance
+            .get(`${parasiteWordsPath}`)
+            .then((res) => setParasiteWords(res.data));
     }, [deletedTexts]);
 
     // When res has been received
     useEffect(() => {
         if (posts.length > 0) console.log('Posts', posts);
         //if (maxScore) console.log('Max score =', maxScore);
-    }, [posts]);
+    }, [posts, deletedTexts]);
 
     useEffect(() => {
         if (model?.vocabulary != undefined) {
@@ -45,90 +47,28 @@ function App() {
             setWordsScore(ExtractModelInfos(model));
         }
         //if (maxScore) console.log('Max score =', maxScore);
-    }, [model]);
+    }, [model, deletedTexts]);
 
     useEffect(() => {
-        if (wordsScore) {
+        if (wordsScore?.length > 0) {
             console.log('WordsScore = ', wordsScore);
             setMaxScore(wordsScore[0]?.score);
         }
-    }, [wordsScore]);
-
-    // For the first run and for each modification on deletedTexts
-    // useEffect(async () => {
-    //     // 1 - Get only untrained user posts datas
-
-    //     setPosts(res.data.posts);
-    //     setModel(res.data.model);
-    //     // axInstance
-    //     //     .get(`${unTrainedPostsPath}/boB43xVgLGYKp27NSw3n5vUczei1`)
-    //     //     .then((d) => {
-    //     //         // 2 - Get posts data
-    //     //         postsData = d.data.posts;
-    //     //         // 3 - Update local states
-    //     //         setPosts(postsData);
-    //     //         setModel(d.data.model);
-    //     //         // PK le model ne est vide ligne suivante alors qu'il est rempli juste avant
-    //     //         setWordsScore(ExtractModelInfos(d.data.model));
-    //     //         if (wordsScore) setMaxScore(wordsScore[0]?.score);
-    //     //     });
-
-    //     console.log('Model =', model);
-    //     //console.log('Words score =', wordsScore);
-    //     // 3 - Add score to post data
-    //     //posts.forEach((post) => {
-    //     //console.log(post);
-    //     // axInstance
-    //     //     .get(`/training/isRecipe/`, {
-    //     //         text: posts[0].caption,
-    //     //     })
-    //     //     .then((data) => {
-    //     //         //console.log('Returned data = ', data);
-    //     //         //post.score = data;
-    //     //         //console.log('Post data ', post);
-    //     //         console.log('Data ', data);
-    //     //     });
-    //     //});
-    // }, [deletedTexts]);
-
-    // useEffect(() => {
-    //     //console.log(posts);
-    //     const axInstance2 = axios.create({
-    //         baseURL: 'http://localhost:8080',
-    //     });
-    //     // 3 - Add score to post data
-    //     posts.forEach((post) => {
-    //         console.log(post);
-    //         axInstance2
-    //             .get('/training/isRecipe', {
-    //                 text: post.caption,
-    //             })
-    //             .then((data) => {
-    //                 //console.log('Returned data = ', data);
-    //                 //post.score = data;
-    //                 //console.log('Post data ', post);
-    //                 console.log(data);
-    //             });
-    //     });
-    // }, []);
-
-    // function getPostScore(caption) {
-    //     const axInstance2 = axios.create({
-    //         baseURL: 'http://localhost:8080',
-    //     });
-    //     axInstance2
-    //         .get('/training/isRecipe', {
-    //             text: caption,
-    //         })
-    //         .then((data) => {
-    //             console.log('Returned data = ', data);
-    //             return data;
-    //         });
-    // }
+    }, [wordsScore, deletedTexts]);
 
     return (
         <Container className="app">
-            <Header wordsScore={wordsScore} maxWords={20} />
+            <TagList
+                className={'top-words'}
+                wordsScore={wordsScore}
+                maxWords={20}
+            />
+            <TagList
+                className={'parasite-words'}
+                parasiteWords={parasiteWords}
+                maxWords={20}
+            />
+            <div className="parasite-words"></div>
             <div className="data-cards">
                 {posts != null &&
                     posts.map(
@@ -156,8 +96,20 @@ const Container = styled.div`
     display: flex;
     flex-wrap: wrap;
     width: 100%;
+    .tag-list {
+        position: fixed;
+        z-index: 1;
+    }
+
+    .top-words {
+        top: 0;
+    }
+    .parasite-words {
+        bottom: 0;
+    }
     .data-cards {
-        margin: 60px 0 20px 40px;
+        margin-top: 60px;
+        //margin: 60px 0 20px 40px;
         width: 100%;
     }
 `;

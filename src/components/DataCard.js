@@ -49,16 +49,16 @@ function DataCard(props) {
         // 2 - Save it as a usedState;
         setWordsSplit(splittedWords);
         // 3 - Get model infos for text
-        axInstance.get(`/training/isRecipe/${text}`).then((res) => {
-            setPredictionInfos(res.data);
-            console.log('Data ', res.data);
-        });
+        axInstance
+            .post(`/training/isRecipe/getPrediction`, { text: text })
+            .then((res) => {
+                setPredictionInfos(res.data);
+            });
         // 3 - Build text elts
         let tempTxt = [];
         tempTxt = splittedWords.map((sw) => (
-            <span className={getClassNameByWordScore(sw)}>{sw}</span>
+            <span className={getClassNameByWordScore(sw)}>{`${sw}`}&nbsp;</span>
         ));
-        console.log('Temps txt', tempTxt);
 
         setProcessedTxt(tempTxt);
     }, [text, wordsScore]);
@@ -109,7 +109,7 @@ export default DataCard;
 const Container = styled.div`
     display: flex;
     align-items: center;
-    width: 100%;
+    margin: 20px;
     .topWord {
         font-weight: bold;
         color: green;
@@ -118,23 +118,27 @@ const Container = styled.div`
 
 const TextArea = styled.div`
     display: flex;
+    width: 100%;
     position: relative;
     flex-wrap: wrap;
     align-items: center;
-    width: 100%;
     min-height: 150px;
-    border: solid 2px black;
+    border: solid 2px gray;
     margin-right: 20px;
     padding: 10px;
     p {
+        color: gray;
         margin: unset;
         line-height: 1.5;
         .matching-txt {
             font-weight: bold;
+            color: green;
         }
-        .color-index {
-            &__1 {
-            }
+    }
+    .color-index {
+        display: flex;
+        flex-wrap: wrap;
+        &__1 {
         }
     }
     .label {
@@ -158,6 +162,8 @@ const TextArea = styled.div`
 
 const ButtonsArea = styled.div`
     display: flex;
+    align-self: start;
+    min-width: 200px;
     flex-direction: column;
     button {
         font-weight: bold;
