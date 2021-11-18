@@ -1,10 +1,24 @@
 import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import styled from 'styled-components';
 import ReactHtmlParser from 'react-html-parser';
 function TagList(props) {
-    const { wordsScore, parasiteWords, maxWords, className } = props;
+    const {
+        wordsScore,
+        parasiteWords,
+        maxWords,
+        className,
+        editMode,
+        setIgnoreWord,
+    } = props;
     const [topWord, setTopWords] = useState([]);
     const [prsWords, setPrsWords] = useState([]);
+
+    const axInstance = axios.create({
+        baseURL: 'http://localhost:8080',
+    });
+
+    const addPsWordPath = '/training//isRecipe/addParasiteWord';
 
     useEffect(() => {
         if (wordsScore) {
@@ -24,11 +38,30 @@ function TagList(props) {
         }
     }, [parasiteWords, maxWords]);
 
+    useEffect(() => {
+        console.log('Edit mode = ', editMode);
+    }, [editMode]);
+
+    function ClickOnTag(word) {
+        console.log('triggered');
+        if (editMode) {
+            console.log(`Add "${word}" to parasite words`);
+            axInstance
+                .post(`${addPsWordPath}`, { text: word })
+                .then((res) => console.log(res.data));
+            setIgnoreWord(word);
+        }
+    }
+
     return (
         <Container className={`tag-list ${className}`}>
             {wordsScore &&
                 topWord.map((ts, i) => (
-                    <WordBox className="wordbox top-word" key={`${ts}_${i}`}>
+                    <WordBox
+                        className="wordbox top-word"
+                        key={`${ts}_${i}`}
+                        onClick={() => ClickOnTag(ts.word)}
+                    >
                         <p className="wordbox__word">{`${ts.word}`}&nbsp;</p>
                         <p className="wordbox__position">{`(${ts.score})`}</p>
                     </WordBox>
@@ -61,6 +94,9 @@ const Container = styled.div`
     //height: 50px;
     .top-word {
         background-color: lightgreen;
+        border: ${(props) => (props.editMode ? 'solid 2px black' : 'none')};
+        ${(props) =>
+            props.editMode ? 'border: solid 2px black' : 'border: none'};
     }
     .parasite-word {
         background-color: lightcoral;
@@ -73,6 +109,7 @@ const WordBox = styled.div`
     margin: 3px;
     border-radius: 10px;
     padding: 10px;
+    cursor: pointer;
 
     p {
         margin: 2px;

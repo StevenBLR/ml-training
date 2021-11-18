@@ -8,18 +8,37 @@ import TagList from './components/TagList';
 
 function App() {
     const [posts, setPosts] = useState([]);
-    const axInstance = axios.create({
-        baseURL: 'http://localhost:8080',
-    });
     const [wordsScore, setWordsScore] = useState([]);
     const [maxScore, setMaxScore] = useState(0);
     const [model, setModel] = useState({});
     const [deletedTexts, setDeletedTexts] = useState([]);
+    const [ignoreWord, setIgnoreWord] = useState([]);
     const [parasiteWords, setParasiteWords] = useState([]);
+    const [editMode, setEditMode] = useState(false);
+
+    const axInstance = axios.create({
+        baseURL: 'http://localhost:8080',
+    });
 
     const unTrainedPostsPath = '/training/isRecipe/getAllUntrainedPosts';
     const predictionPath = '/training/isRecipe';
     const parasiteWordsPath = '/training/isRecipe/getAllParasiteWords';
+
+    // On first run
+    useEffect(() => {
+        document.addEventListener('keydown', function (e) {
+            if (e.altKey) {
+                //console.log('Edit mode ON');
+                setEditMode(true);
+            }
+        });
+        document.addEventListener('keyup', function (e) {
+            if (!e.altKey) {
+                //console.log('Edit mode OFF');
+                setEditMode(false);
+            }
+        });
+    }, []);
 
     useEffect(() => {
         axInstance
@@ -33,7 +52,7 @@ function App() {
         axInstance
             .get(`${parasiteWordsPath}`)
             .then((res) => setParasiteWords(res.data));
-    }, [deletedTexts]);
+    }, [deletedTexts, ignoreWord]);
 
     // When res has been received
     useEffect(() => {
@@ -59,11 +78,14 @@ function App() {
     return (
         <Container className="app">
             <TagList
+                editMode={editMode}
+                setIgnoreWord={setIgnoreWord}
                 className={'top-words'}
                 wordsScore={wordsScore}
                 maxWords={20}
             />
             <TagList
+                editMode={editMode}
                 className={'parasite-words'}
                 parasiteWords={parasiteWords}
                 maxWords={20}
