@@ -130,8 +130,8 @@ const Container = styled.div`
         bottom: 0;
     }
     .data-cards {
-        margin-top: 60px;
-        //margin: 60px 0 20px 40px;
+        margin-top: 40px;
+        margin-bottom: 40px;
         width: 100%;
     }
 `;
