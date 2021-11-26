@@ -44,6 +44,7 @@ function App() {
         axInstance
             .get(`${unTrainedPostsPath}/boB43xVgLGYKp27NSw3n5vUczei1`)
             .then((res) => {
+                console.log('Res = ', res);
                 // XX - Get posts data & Update local states
                 setPosts(res.data.posts);
                 setModel(res.data.model);
@@ -82,7 +83,7 @@ function App() {
                 setIgnoreWord={setIgnoreWord}
                 className={'top-words'}
                 wordsScore={wordsScore}
-                maxWords={20}
+                maxWords={50}
             />
             <TagList
                 editMode={editMode}

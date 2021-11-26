@@ -18,7 +18,7 @@ function TagList(props) {
         baseURL: 'http://localhost:8080',
     });
 
-    const addPsWordPath = '/training//isRecipe/addParasiteWord';
+    const addPsWordPath = '/training/isRecipe/addParasiteWord';
 
     useEffect(() => {
         if (wordsScore) {
@@ -85,7 +85,8 @@ export default TagList;
 
 const Container = styled.div`
     display: flex;
-    overflow: hidden;
+    overflow-x: scroll;
+    overflow-y: hidden;
     justify-content: start;
     box-sizing: border-box;
     border: solid 2px black;
